@@ -1,0 +1,392 @@
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
+using System.Drawing;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows.Forms;
+
+namespace calculator
+{
+    public partial class Form1 : Form
+    {
+
+
+        double number1 = 0, number2 = 0, result;
+        int inputnumber, pointnumber;
+
+        enum Operator { none, plus, minus, multiplication, division, power, squareroot, negative }
+        Operator mode = Operator.none;
+        bool isequal = false, ispoint = false, isnegative = false;
+        public Form1()
+        {
+            InitializeComponent();
+        }
+
+        private void label1_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void Form1_Load(object sender, EventArgs e)
+        {
+            labelout.Text = Convert.ToString(number1);
+        }
+
+        private void num1_Click(object sender, EventArgs e)
+        {
+            inputnumber = 1;
+            calculator(inputnumber);
+        }
+
+        private void num2_Click(object sender, EventArgs e)
+        {
+            inputnumber = 2;
+            calculator(inputnumber);
+        }
+
+        private void num3_Click(object sender, EventArgs e)
+        {
+            inputnumber = 3;
+            calculator(inputnumber);
+        }
+
+        private void num4_Click(object sender, EventArgs e)
+        {
+            inputnumber = 4;
+            calculator(inputnumber);
+        }
+
+        private void num5_Click(object sender, EventArgs e)
+        {
+            inputnumber = 5;
+            calculator(inputnumber);
+        }
+
+        private void num6_Click(object sender, EventArgs e)
+        {
+            inputnumber = 6;
+            calculator(inputnumber);
+        }
+
+        private void num7_Click(object sender, EventArgs e)
+        {
+            inputnumber = 7;
+            calculator(inputnumber);
+        }
+
+        private void num8_Click(object sender, EventArgs e)
+        {
+            inputnumber = 8;
+            calculator(inputnumber);
+        }
+
+        private void num9_Click(object sender, EventArgs e)
+        {
+            inputnumber = 9;
+            calculator(inputnumber);
+        }
+
+        private void num0_Click(object sender, EventArgs e)
+        {
+            inputnumber = 0;
+            calculator(inputnumber);
+        }
+
+        private void clean_Click(object sender, EventArgs e)
+        {
+            cleanall();
+        }
+
+        public void calculator(int an)
+        {
+            if(isnegative == true)
+            {
+                if (pointnumber == 0)
+                {
+                    if (mode == Operator.none || mode == Operator.squareroot)
+                    {
+                        number1 = number1 * 10 - an;
+                        labelout.Text = Convert.ToString(number1);
+                    }
+                    else
+                    {
+                        number2 = number2 * 10 - an;
+                        labelout.Text = Convert.ToString(number2);
+                    }
+                }
+                else
+                {
+                    pointnumber = pointnumber + 1;
+                    if (mode == Operator.none || mode == Operator.squareroot)
+                    {
+                        number1 = number1 - an / Math.Pow(10, pointnumber - 1);// Pow = power 乘方
+                        //number1 = number1 + an * Math.Pow(10,-1 * (pointnumber -1));//也可以这样写
+                        labelout.Text = Convert.ToString(number1);
+                    }
+                    else
+                    {
+                        number2 = number2 - an / Math.Pow(10, pointnumber - 1);
+                        labelout.Text = Convert.ToString(number2);
+                    }
+                }
+            }
+            else
+            {
+                if (pointnumber == 0)
+                {
+                    if (mode == Operator.none || mode == Operator.squareroot)
+                    {
+                        number1 = number1 * 10 + an;
+                        labelout.Text = Convert.ToString(number1);
+                    }
+                    else
+                    {
+                        number2 = number2 * 10 + an;
+                        labelout.Text = Convert.ToString(number2);
+                    }
+                }
+                else
+                {
+                    pointnumber = pointnumber + 1;
+                    if (mode == Operator.none || mode == Operator.squareroot)
+                    {
+                        number1 = number1 + an / Math.Pow(10, pointnumber - 1);// Pow = power 乘方
+                        //number1 = number1 + an * Math.Pow(10,-1 * (pointnumber -1));//也可以这样写
+                        labelout.Text = Convert.ToString(number1);
+                    }
+                    else
+                    {
+                        number2 = number2 + an / Math.Pow(10, pointnumber - 1);
+                        labelout.Text = Convert.ToString(number2);
+                    }
+                }
+            }
+            
+
+
+        }
+
+        private void plus_Click(object sender, EventArgs e)
+        {
+            mode = Operator.plus;
+            switchmode();
+        }
+
+        private void minus_Click(object sender, EventArgs e)
+        {
+            mode = Operator.minus;
+            switchmode();
+        }
+
+        private void multiplication_Click(object sender, EventArgs e)
+        {
+            mode = Operator.multiplication;
+            switchmode();
+        }
+
+        private void equal_Click(object sender, EventArgs e)
+        {
+            switch (mode)
+            {
+                case Operator.plus:
+                    result = number1 + number2;
+                    break;
+                case Operator.minus:
+                    result = number1 - number2;
+                    break;
+                case Operator.multiplication:
+                    result = number1 * number2;
+                    break;
+                case Operator.division:
+                    result = number1 / number2;
+                    break;
+                case Operator.power:
+                    result = Math.Pow(number1, number2); //number1 为底数, number2 为指数
+                    break;
+                case Operator.squareroot:
+                    result = Math.Sqrt(number1);//仅有二次开方
+                    break;
+                case Operator.negative:
+                    result = number1 / number2;
+                    break;
+            }
+            number1 = 0;
+            number2 = 0;
+            isequal = true;
+            labelbefore.Text = "";
+            labelmode.Text = "";
+            labelout.Text = Convert.ToString(result);
+        }
+
+        private void power_Click(object sender, EventArgs e)
+        {
+            mode = Operator.power;
+            switchmode();
+        }
+
+        private void squareroot_Click(object sender, EventArgs e)
+        {
+            mode = Operator.squareroot;
+            switchmode();
+        }
+
+        private void negative_Click(object sender, EventArgs e)
+        {
+            if (isnegative == false)
+            {
+                isnegative = true;
+            }
+            else
+            {
+                isnegative = false;
+            }
+            if (mode == Operator.none)
+            {
+                number1 = number1 * -1;
+                labelout.Text = Convert.ToString(number1);
+            }
+            else
+            {
+                number2 = number2 * -1;
+                labelout.Text = Convert.ToString(number2);
+            }
+        }
+
+        private void back_Click(object sender, EventArgs e)
+        {
+            if(ispoint == false)
+            {
+                if(mode == Operator.none || mode == Operator.squareroot)
+                {
+                    if(number1 >= 10 || number1 <= -10)
+                    {
+                        number1 = Convert.ToDouble(Convert.ToString(number1).Substring(0, Convert.ToString(number1).Length - 1));
+                    }
+                    else if(number1 < 10 || number1 > -10)
+                    {
+                        number1 = 0;
+                    }
+                    labelout.Text = Convert.ToString(number1);
+                }
+                else
+                {
+                    if (number2 >= 10 || number2 <= -10)
+                    {
+                        number2 = Convert.ToDouble(Convert.ToString(number2).Substring(0, Convert.ToString(number2).Length - 1));
+                    }
+                    else if (number2 < 10 || number2 > -10)
+                    {
+                        number2 = 0;
+                    }
+                    labelout.Text = Convert.ToString(number2);
+                }
+            }
+            else
+            {
+                if (mode == Operator.none || mode == Operator.squareroot)
+                {
+                    number1 = Convert.ToDouble(Convert.ToString(number1).Substring(0, Convert.ToString(number1).Length - 1));
+                    labelout.Text = Convert.ToString(number1);
+                    pointnumber = pointnumber - 1;
+                    if(pointnumber == 1)
+                    {
+                        ispoint = false;
+                        pointnumber = 0;
+                    }
+                }
+                else
+                {
+                    number2 = Convert.ToDouble(Convert.ToString(number2).Substring(0, Convert.ToString(number2).Length - 1));
+                    labelout.Text = Convert.ToString(number2);
+                    pointnumber = pointnumber - 1;
+                    if (pointnumber == 1)
+                    {
+                        ispoint = false;
+                        pointnumber = 0;
+                    }
+                }
+            }
+        }
+
+        private void division_Click(object sender, EventArgs e)
+        {
+            mode = Operator.division;
+            switchmode();
+        }
+
+        private void point_Click(object sender, EventArgs e)
+        {
+            if(ispoint == false)
+            {
+                pointnumber = 1;
+                if (mode == Operator.none || mode == Operator.squareroot)
+                {
+                    labelout.Text = Convert.ToString(number1) + ".";
+                }
+                else
+                {
+                    labelout.Text = Convert.ToString(number2) + ".";
+                }
+                ispoint = true;
+            }
+        }
+
+        public void cleanall()
+        {
+            number1 = 0;
+            number2 = 0;
+            labelout.Text = Convert.ToString(number1);
+            labelbefore.Text = "";
+            labelmode.Text = "";
+            isequal = false;
+            mode = Operator.none;
+            ispoint = false;
+            pointnumber = 0;
+            isnegative = false;
+        }
+        public void switchmode()
+        {
+            switch (mode)
+            {
+                case Operator.plus:
+                    labelmode.Text = "+";
+                    break;
+                case Operator.minus:
+                    labelmode.Text = "-";
+                    break;
+                case Operator.multiplication:
+                    labelmode.Text = "*";
+                    break;
+                case Operator.division:
+                    labelmode.Text = "/";
+                    break;
+                case Operator.power:
+                    labelmode.Text = "^";
+                    break;
+                case Operator.squareroot:
+                    labelmode.Text = "√";
+                    break;
+                case Operator.negative:
+                    labelmode.Text = "负";
+                    break;
+            }
+
+            ispoint = false;
+            pointnumber = 0;
+            if (isequal == true)
+            {
+                number1 = result;
+            }
+            if(mode != Operator.squareroot)
+            {
+                labelbefore.Text = Convert.ToString(number1);
+                labelout.Text = Convert.ToString(number2);
+            }
+            labelbefore.Text = Convert.ToString(number1);
+            labelout.Text = Convert.ToString(number2);
+        }
+    }
+}
