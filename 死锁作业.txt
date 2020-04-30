@@ -1,0 +1,297 @@
+什么是死锁?
+死锁是这样一种情形：多个线程同时被阻塞,它们中的一个或者全部都在等待某个资源被释放.由于线程被无限期地阻塞,因此程序不能正常运行.形象的说就是:
+一个宝藏需要两把钥匙来打开,同时间正好来了两个人,他们一人一把钥匙,但是双方都再等着对方能交出钥匙来打开宝藏,谁都没释放自己的那把钥匙.就这样这俩人一直僵持下去,
+直到开发人员发现这个局面.                                                                                            
+
+定义两个final的对象锁.可以看做是共有的资源.
+ final Object lockA = new Object();
+ final Object lockB = new Object();
+//生产者A
+ class ProductThreadA implements Runnable{
+   @Override
+   public void run() {
+     synchronized (lockA){
+     //这里一个log日志
+       Log.e("CHAO","ThreadA lock lockA");
+       try {
+         Thread.sleep(2000);
+       } catch (InterruptedException e) {
+         e.printStackTrace();
+       }
+       synchronized (lockB){
+        //这里一个log日志
+         Log.e("CHAO","ThreadA lock lockB");
+         try {
+           Thread.sleep(2000);
+         } catch (InterruptedException e) {
+           e.printStackTrace();
+         }
+
+       }
+     }
+   }
+ }
+ //生产者B
+ class ProductThreadB implements Runnable{
+   @Override
+   public void run() {
+     synchronized (lockB){
+      //这里一个log日志
+       Log.e("CHAO","ThreadB lock lockB");
+       try {
+         Thread.sleep(2000);
+       } catch (InterruptedException e) {
+         e.printStackTrace();
+       }
+       synchronized (lockA){
+        //这里一个log日志
+         Log.e("CHAO","ThreadB lock lockA");
+         try {
+           Thread.sleep(2000);
+         } catch (InterruptedException e) {
+           e.printStackTrace();
+         }
+
+       }
+     }
+   }
+ }
+ProductThreadA productThreadA = new ProductThreadA();
+ProductThreadB productThreadB = new ProductThreadB();
+
+   Thread threadA = new Thread(productThreadA);
+   Thread threadB = new Thread(productThreadB);
+   threadA.start();
+   threadB.start();
+
+分析一下,当threadA开始执行run方法的时候,它会先持有对象锁localA,然后睡眠2秒,这时候threadB也开始执行run方法,它持有的是localB对象锁.
+当threadA运行到第二个同步方法的时候,发现localB的对象锁不能使用(threadB未释放localB锁),threadA就停在这里等待localB锁.随后threadB也执行到第二个同步方法,去访问l
+ocalA对象锁的时候发现localA还没有被释放(threadA未释放localA锁),threadB也停在这里等待localA锁释放.就这样两个线程都没办法继续执行下去,进入死锁的状态. 看下运行结果:
+10-20 14:54:39.940 18162-18178/? E/CHAO: ThreadA lock lockA
+10-20 14:54:39.940 18162-18179/? E/CHAO: ThreadB lock lockB
+
+
+实现生产者消费者模型
+public interface Consumer {
+
+  void consume() throws InterruptedException;
+
+}
+
+
+
+public interface Producer {
+
+  void produce() throws InterruptedException;
+
+}
+
+
+
+abstract class AbstractConsumer implements Consumer, Runnable {
+
+  @Override
+
+  public void run() {
+
+    while (true) {
+
+      try {
+
+        consume();
+
+      } catch (InterruptedException e) {
+
+        e.printStackTrace();
+
+        break;
+
+      }
+
+    }
+
+  }
+
+}
+
+
+
+abstract class AbstractProducer implements Producer, Runnable {
+
+  @Override
+
+  public void run() {
+
+    while (true) {
+
+      try {
+
+        produce();
+
+      } catch (InterruptedException e) {
+
+        e.printStackTrace();
+
+        break;
+
+      }
+
+    }
+
+  }
+
+}
+为模型定义抽象工厂方法
+public interface Model {
+
+  Runnable newRunnableConsumer();
+
+  Runnable newRunnableProducer();
+
+}
+将Task作为生产和消费的单位
+public class Task {
+
+  public int no;
+
+  public Task(int no) {
+
+    this.no = no;
+
+  }
+
+}
+实现：BlockingQueue
+public class BlockingQueueModel implements Model {
+
+  private final BlockingQueue<Task> queue;
+
+  private final AtomicInteger increTaskNo = new AtomicInteger(0);
+
+  public BlockingQueueModel(int cap) {
+
+    // LinkedBlockingQueue 的队列是 lazy-init 的，但 ArrayBlockingQueue 在创建时就已经 init
+
+    this.queue = new LinkedBlockingQueue<>(cap);
+
+  }
+
+  @Override
+
+  public Runnable newRunnableConsumer() {
+
+    return new ConsumerImpl();
+
+  }
+
+  @Override
+
+  public Runnable newRunnableProducer() {
+
+    return new ProducerImpl();
+
+  }
+
+  private class ConsumerImpl extends AbstractConsumer implements Consumer, Runnable {
+
+    @Override
+
+    public void consume() throws InterruptedException {
+
+      Task task = queue.take();
+
+      // 固定时间范围的消费，模拟相对稳定的服务器处理过程
+
+      Thread.sleep(500 + (long) (Math.random() * 500));
+
+      System.out.println("consume: " + task.no);
+
+    }
+
+  }
+
+  private class ProducerImpl extends AbstractProducer implements Producer, Runnable {
+
+    @Override
+
+    public void produce() throws InterruptedException {
+
+      // 不定期生产，模拟随机的用户请求
+
+      Thread.sleep((long) (Math.random() * 1000));
+
+      Task task = new Task(increTaskNo.getAndIncrement());
+
+      queue.put(task);
+
+      System.out.println("produce: " + task.no);
+
+    }
+
+  }
+
+  public static void main(String[] args) {
+
+    Model model = new BlockingQueueModel(3);
+
+    for (int i = 0; i < 2; i++) {
+
+      new Thread(model.newRunnableConsumer()).start();
+
+    }
+
+    for (int i = 0; i < 5; i++) {
+
+      new Thread(model.newRunnableProducer()).start();
+
+    }
+
+  }
+
+}
+
+
+
+截取前面的一部分输出：
+
+
+
+produce: 0
+
+produce: 4
+
+produce: 2
+
+produce: 3
+
+produce: 5
+
+consume: 0
+
+produce: 1
+
+consume: 4
+
+produce: 7
+
+consume: 2
+
+produce: 8
+
+consume: 3
+
+produce: 6
+
+consume: 5
+
+produce: 9
+
+consume: 1
+
+produce: 10
+
+consume: 7
+
+
+
+完成人：赵雨欣 徐光楠 周妍
